@@ -67,3 +67,30 @@ provider "helm" {
   service_account = "tiller"
   tiller_image    = "gcr.io/kubernetes-helm/tiller:v2.13.0"
 }
+
+resource "helm_release" "keycloak" {
+  name = "keycloak"
+  chart = "stable/keycloak"
+
+  depends_on = ["null_resource.helm_init"]
+}
+
+resource "null_resource" "helm_init" {
+  provisioner "local-exec" {
+    command = "helm init"
+  }
+}
+
+data "template_file" "keycloak" {
+  template = "${file("${path.module}/kube/keycloak-ingress.yaml")}"
+}
+
+resource "null_resource" "keycloak" {
+  triggers = {
+    manifest_sha1 = "${sha1("${data.template_file.keycloak.rendered}")}"
+  }
+
+  provisioner "local-exec" {
+    command = "kubectl apply -f ./kube/keycloak-ingress.yaml"
+  }
+}

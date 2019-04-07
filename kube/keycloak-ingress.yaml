@@ -1,0 +1,14 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: keycloak
+  namespace: default
+spec:
+  rules:
+  - host: secure.devlocal.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: keycloak-http
+          servicePort: 80
